@@ -287,9 +287,8 @@ public class DMRTopicModel extends LDAHyper {
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(lda.dmrParameters);
 
-		fout = new FileOutputStream("typeTopicCounts.model");
-		oos = new ObjectOutputStream(fout);
-		oos.writeObject(lda.typeTopicCounts);
+		// New plan -- save state, load state into more modern version, then write inferencer.
+		lda.printState(new File("dmrState.state"));
 		
 		System.out.println(lda.beta);
 		System.out.println(lda.betaSum);

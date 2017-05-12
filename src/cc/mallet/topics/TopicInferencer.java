@@ -101,6 +101,13 @@ public class TopicInferencer implements Serializable {
 			if (type < numTypes && typeTopicCounts[type].length != 0) { 
 
 				currentTypeTopicCounts = typeTopicCounts[type];
+				
+				for(int c : currentTypeTopicCounts) {
+					System.out.print(c + " ");
+				}
+				System.out.println();
+				
+				//System.out.println(currentTypeTopicCounts);
 
 				// This value should be a topic such that
 				//  no other topic has more tokens of this type 
@@ -108,7 +115,7 @@ public class TopicInferencer implements Serializable {
 				//  no tokens of this type in the training data, it
 				//  will default to topic 0, which is no worse than 
 				//  random initialization.
-				System.out.println(currentTypeTopicCounts[0] + " " + (currentTypeTopicCounts[0] & topicMask));
+				//System.out.println(currentTypeTopicCounts[0] + " " + (currentTypeTopicCounts[0] & topicMask));
 				topics[position] = 
 					currentTypeTopicCounts[0] & topicMask;
 
@@ -520,6 +527,14 @@ public class TopicInferencer implements Serializable {
 
 		smoothingOnlyMass = in.readDouble();
 		cachedCoefficients = (double[]) in.readObject();
+	}
+	
+	public int[][] getTypeTopicCounts() {
+		return this.typeTopicCounts;
+	}
+	
+	public int[] getTokensPerTopic() {
+		return this.tokensPerTopic;
 	}
 
 	public static TopicInferencer read (File f) throws Exception {

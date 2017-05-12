@@ -32,13 +32,17 @@ public class DMRTopicInferencer extends TopicInferencer {
 		System.out.println("I think that there are " + this.numTopics + " topics.");
 		System.out.println("I am using a topic mask of " + this.topicMask + " " + this.topicBits);
 
-		this.numFeatures = oneInstance.getTargetAlphabet().size() + 1;
+		numFeatures = oneInstance.getTargetAlphabet().size() + 1;
+		defaultFeatureIndex = this.numFeatures - 1;
+		
 		System.out.println("There are " + this.numFeatures  + " features.");
-		this.defaultFeatureIndex = this.numFeatures - 1;
+		
 		this.classifier = classifier;
 		this.parameters = classifier.getParameters();
 		System.out.println(parameters.length);
-		this.numTopics = typeTopicCounts[0].length+1;
+		this.numTopics = typeTopicCounts[0].length;
+		
+		System.out.println("There are " + this.numTopics + " topics.");
 	}
 	
 	
@@ -178,7 +182,6 @@ public class DMRTopicInferencer extends TopicInferencer {
         ObjectInputStream oos;
         
         MaxEnt params = null;
-        gnu.trove.TIntIntHashMap[] typeTopicCounts = null;
         
         fis = new FileInputStream(args[1]);
         oos = new ObjectInputStream(fis);
@@ -188,43 +191,28 @@ public class DMRTopicInferencer extends TopicInferencer {
 			e.printStackTrace();
 		}
         
+        
+        int [][] typeTopicArr;
         fis = new FileInputStream(args[2]);
         oos = new ObjectInputStream(fis);
         try {
-        	typeTopicCounts = (gnu.trove.TIntIntHashMap[])(oos.readObject());
-		} catch (ClassNotFoundException e) {
+			typeTopicArr = (int [][]) oos.readObject();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         
-        int [][] typeTopicCountsArr = new int[typeTopicCounts.length][30];
-        for(int i = 0; i < typeTopicCountsArr.length; ++i) {
-        	for(int j = 0; j < typeTopicCountsArr[0].length; ++j){
-        		typeTopicCountsArr[i][j] = typeTopicCounts[i].get(j);
-        	}
-        }
+        System.exit(0);
         
-        System.out.println(typeTopicCountsArr.length + " " + typeTopicCountsArr[0].length);
         
-        int[] tokensPerTopicArr = new int[typeTopicCountsArr[0].length];
+        DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
+        //		tokensPerTopicArr,
+        //		testing.get(0).getDataAlphabet(),
+        //		0.01, 237.58, testing.get(0), params);
         
-        for(int j = 0; j < typeTopicCountsArr[0].length; ++j){
-    		tokensPerTopicArr[j] = 0;
-    	}
+        //File outputFile = new File("output.txt");
         
-        for(int i = 0; i < typeTopicCountsArr.length; ++i) {
-        	for(int j = 0; j < typeTopicCountsArr[0].length; ++j){
-        		tokensPerTopicArr[j] += typeTopicCountsArr[i][j];
-        	}
-        }
-        
-        DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicCountsArr,
-        		tokensPerTopicArr,
-        		testing.get(0).getDataAlphabet(),
-        		0.01, 237.58, testing.get(0), params);
-        
-        File outputFile = new File("output.txt");
-        
-        dmrti.writeInferredDistributions(testing, outputFile, 100, 10, 10, 0.0, -1);
+        //dmrti.writeInferredDistributions(testing, outputFile, 100, 10, 10, 0.0, -1);
         
         //System.out.println(myMaxEnt.getParameters());
 
