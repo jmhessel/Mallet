@@ -35,6 +35,7 @@ public class DMRTopicModel extends LDAHyper {
 	public void estimate (int iterationsThisRound) throws IOException {
 
         numFeatures = data.get(0).instance.getTargetAlphabet().size() + 1;
+        System.out.println("There are " + numFeatures + " features.");
         defaultFeatureIndex = numFeatures - 1;
 
 		int numDocs = data.size(); // TODO consider beginning by sub-sampling?
@@ -289,9 +290,8 @@ public class DMRTopicModel extends LDAHyper {
 		fout = new FileOutputStream("typeTopicCounts.model");
 		oos = new ObjectOutputStream(fout);
 		oos.writeObject(lda.typeTopicCounts);
-
-		fout = new FileOutputStream("tokensPerTopic.model");
-		oos = new ObjectOutputStream(fout);
-		oos.writeObject(lda.tokensPerTopic);
+		
+		System.out.println(lda.beta);
+		System.out.println(lda.betaSum);
     }
 }

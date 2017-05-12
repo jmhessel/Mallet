@@ -108,6 +108,7 @@ public class TopicInferencer implements Serializable {
 				//  no tokens of this type in the training data, it
 				//  will default to topic 0, which is no worse than 
 				//  random initialization.
+				System.out.println(currentTypeTopicCounts[0] + " " + (currentTypeTopicCounts[0] & topicMask));
 				topics[position] = 
 					currentTypeTopicCounts[0] & topicMask;
 
