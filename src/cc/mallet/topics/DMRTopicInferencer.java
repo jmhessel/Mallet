@@ -205,7 +205,7 @@ public class DMRTopicInferencer extends TopicInferencer {
         System.exit(0);
         
         
-        DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
+        //DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
         //		tokensPerTopicArr,
         //		testing.get(0).getDataAlphabet(),
         //		0.01, 237.58, testing.get(0), params);
