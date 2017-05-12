@@ -12,6 +12,9 @@ import gnu.trove.TIntIntHashMap;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+
 import java.io.File;
 
 public class DMRTopicModel extends LDAHyper {
@@ -273,16 +276,22 @@ public class DMRTopicModel extends LDAHyper {
 
         int numTopics = args.length > 1 ? Integer.parseInt(args[1]) : 200;
 
-        InstanceList testing =
-            args.length > 2 ? InstanceList.load (new File(args[2])) : null;
-
         DMRTopicModel lda = new DMRTopicModel (numTopics);
 		lda.setOptimizeInterval(100);
 		lda.setTopicDisplay(100, 10);
 		lda.addInstances(training);
 		lda.estimate();
 
-		lda.writeParameters(new File("dmr.parameters"));
-		lda.printState(new File("dmr.state.gz"));
+		FileOutputStream fout = new FileOutputStream("dmr.maxentmodel");
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(lda.dmrParameters);
+
+		fout = new FileOutputStream("typeTopicCounts.model");
+		oos = new ObjectOutputStream(fout);
+		oos.writeObject(lda.typeTopicCounts);
+
+		fout = new FileOutputStream("tokensPerTopic.model");
+		oos = new ObjectOutputStream(fout);
+		oos.writeObject(lda.tokensPerTopic);
     }
 }
