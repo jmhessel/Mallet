@@ -114,12 +114,14 @@ public class DMRTopicInferencer extends TopicInferencer {
 	 *  @param threshold	 The minimum proportion of a given topic that will be written
 	 *  @param max		   The total number of topics to report per document]
 	 */
-	public void writeInferredDistributions(InstanceList instances, 
-										   File distributionsFile,
-										   int numIterations, int thinning, int burnIn,
-										   double threshold, int max) throws IOException {
+	public void writeInferredDistributionsAndLogLikelihoods(InstanceList instances, 
+										   					File distributionsFile,
+										   					File logLikelihoodFile,
+										   					int numIterations, int thinning, int burnIn,
+										   					double threshold, int max) throws IOException {
 
 		PrintWriter out = new PrintWriter(distributionsFile);
+		PrintWriter logLikeOut = new PrintWriter(logLikelihoodFile);
 		
 		out.print ("#doc name topic proportion ...\n");
 
@@ -146,11 +148,7 @@ public class DMRTopicInferencer extends TopicInferencer {
 			
 			double [] topicDistribution = p.getFirst();
 			int [] topicAssignments = p.getSecond();
-			System.out.println(logLikelihood(topicAssignments,instance));
-			
-			for(int x : topicAssignments)
-				System.out.print(x + " ");
-			System.out.println();
+			logLikeOut.print(logLikelihood(topicAssignments,instance) + "\n");
 			
 			builder.append(doc);
 			builder.append("\t");
@@ -291,8 +289,9 @@ public class DMRTopicInferencer extends TopicInferencer {
         		0.01, 237.58, testing.get(0), params, oldTypeTopicCounts);
         
         File outputFile = new File("output.txt");
+        File likelihoodFile = new File("likelihood.txt");
         
-        dmrti.writeInferredDistributions(testing, outputFile, 100, 10, 10, 0.0, -1);
+        dmrti.writeInferredDistributionsAndLogLikelihoods(testing, outputFile, likelihoodFile, 100, 10, 10, 0.0, -1);
 
 	}
 	
