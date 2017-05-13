@@ -200,12 +200,14 @@ public class DMRTopicInferencer extends TopicInferencer {
 		
 		int topic;
 		int type;
+		int validLen = 0;
 		// Do the P(w_i | z_i) first...
 		for (int position = 0; position < docLength; position++) {
 			type = tokens.getIndexAtPosition(position);
 			topic = topics[position];
 			// Ignore out of vocabulary terms
 			if (type < numTypes && typeTopicCounts[type].length != 0) {
+				validLen ++;
 				curDocTopicCounts[topic] ++;
 				int count = oldTypeTopicCounts[type].get(topic);
 				if(count > 0) {
@@ -223,7 +225,7 @@ public class DMRTopicInferencer extends TopicInferencer {
 				// Ignore out of vocabulary terms
 				if (type < numTypes && typeTopicCounts[type].length != 0) {
 					loglike += Math.log(curDocTopicCounts[topic] + alpha[topic]);
-					loglike -= Math.log(tokensPerTopic[topic] + alphaSum);
+					loglike -= Math.log(validLen + alphaSum);
 				}
 			}
 		}
