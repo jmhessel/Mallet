@@ -30,7 +30,6 @@ public class Inference2Counts {
 		fout = new FileOutputStream("tokensPerTopic.mallet");
 		oos = new ObjectOutputStream(fout);
 		oos.writeObject(inferencer.getTokensPerTopic());
-
 	}
 
 }

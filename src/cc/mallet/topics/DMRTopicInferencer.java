@@ -10,11 +10,15 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import cc.mallet.classify.MaxEnt;
+import cc.mallet.topics.TopicInferencer.Pair;
 import cc.mallet.types.Alphabet;
+import cc.mallet.types.Dirichlet;
+import cc.mallet.types.FeatureSequence;
 import cc.mallet.types.FeatureVector;
 import cc.mallet.types.IDSorter;
 import cc.mallet.types.Instance;
 import cc.mallet.types.InstanceList;
+import cc.mallet.types.LabelSequence;
 import cc.mallet.types.MatrixOps;
 import gnu.trove.TIntIntIterator;
 
@@ -24,9 +28,10 @@ public class DMRTopicInferencer extends TopicInferencer {
 	int defaultFeatureIndex;
 	MaxEnt classifier = null;
 	double [] parameters;
+	gnu.trove.TIntIntHashMap[] oldTypeTopicCounts = null;
 	
-	public DMRTopicInferencer(int[][] typeTopicCounts, int[] tokensPerTopic, Alphabet alphabet,
-			double beta, double betaSum, Instance oneInstance, MaxEnt classifier) {
+	public DMRTopicInferencer(int[][] typeTopicCounts,  int[] tokensPerTopic, Alphabet alphabet,
+			double beta, double betaSum, Instance oneInstance, MaxEnt classifier, gnu.trove.TIntIntHashMap[] oldTypeTopicCounts) {
 		
 		super(typeTopicCounts, tokensPerTopic, alphabet, new double[typeTopicCounts[0].length], beta, betaSum);
 		System.out.println("I think that there are " + this.numTopics + " topics.");
@@ -43,6 +48,8 @@ public class DMRTopicInferencer extends TopicInferencer {
 		this.numTopics = typeTopicCounts[0].length;
 		
 		System.out.println("There are " + this.numTopics + " topics.");
+		
+		this.oldTypeTopicCounts = oldTypeTopicCounts;
 	}
 	
 	
@@ -135,9 +142,16 @@ public class DMRTopicInferencer extends TopicInferencer {
 			//Modify this.alpha to be the correct alpha for this document.
 			setAlphas(instance);
 			
-			double[] topicDistribution =
-				getSampledDistribution(instance, numIterations,
-									   thinning, burnIn);
+			Pair<double [], int []> p = getSampledDistributionAndTopics(instance, numIterations, thinning, burnIn);
+			
+			double [] topicDistribution = p.getFirst();
+			int [] topicAssignments = p.getSecond();
+			System.out.println(logLikelihood(topicAssignments,instance));
+			
+			for(int x : topicAssignments)
+				System.out.print(x + " ");
+			System.out.println();
+			
 			builder.append(doc);
 			builder.append("\t");
 
@@ -172,6 +186,55 @@ public class DMRTopicInferencer extends TopicInferencer {
 
 		out.close();
 	}
+	
+	public double logLikelihood(int[] topics, Instance instance) {
+		
+		double loglike = 0.0;
+		FeatureSequence tokens = (FeatureSequence) instance.getData();
+		int docLength = tokens.size();
+		
+		double alphaSum = 0.0;
+		for(double a : alpha) alphaSum += a;
+		
+		//get the sum of each topic in this document
+		int[] curDocTopicCounts = new int[this.numTopics];
+		for(int i = 0; i < curDocTopicCounts.length; ++i) curDocTopicCounts[i] = 0;
+		
+		int topic;
+		int type;
+		// Do the P(w_i | z_i) first...
+		for (int position = 0; position < docLength; position++) {
+			type = tokens.getIndexAtPosition(position);
+			topic = topics[position];
+			// Ignore out of vocabulary terms
+			if (type < numTypes && typeTopicCounts[type].length != 0) {
+				curDocTopicCounts[topic] ++;
+				int count = oldTypeTopicCounts[type].get(topic);
+				if(count > 0) {
+					loglike += Math.log(beta + count);
+					loglike -= Math.log(tokensPerTopic[topic] + betaSum);
+				}
+			}
+		}
+		
+		//Do the P(zi | alpha) next
+		for (int position = 0; position < docLength; position++) {
+			type = tokens.getIndexAtPosition(position);
+			topic = topics[position];
+			if (type < numTypes && typeTopicCounts[type].length != 0) {
+				// Ignore out of vocabulary terms
+				if (type < numTypes && typeTopicCounts[type].length != 0) {
+					loglike += Math.log(curDocTopicCounts[topic] + alpha[topic]);
+					loglike -= Math.log(tokensPerTopic[topic] + alphaSum);
+				}
+			}
+		}
+		
+		return loglike;
+	}
+	
+
+	
 
 	public static void main (String[] args) throws IOException {
 		//instances, maxent model, typeTopic, tokensPerTopic
@@ -192,7 +255,7 @@ public class DMRTopicInferencer extends TopicInferencer {
 		}
         
         
-        int [][] typeTopicArr;
+        int [][] typeTopicArr = null;
         fis = new FileInputStream(args[2]);
         oos = new ObjectInputStream(fis);
         try {
@@ -202,19 +265,34 @@ public class DMRTopicInferencer extends TopicInferencer {
 			e.printStackTrace();
 		}
         
-        System.exit(0);
+        int [] tokensPerTopicArr = null;
+        fis = new FileInputStream(args[3]);
+        oos = new ObjectInputStream(fis);
+        try {
+        	tokensPerTopicArr = (int []) oos.readObject();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
+        gnu.trove.TIntIntHashMap[] oldTypeTopicCounts = null;
+        fis = new FileInputStream(args[4]);
+        oos = new ObjectInputStream(fis);
+        try {
+        	oldTypeTopicCounts = (gnu.trove.TIntIntHashMap[]) oos.readObject();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
-        //DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
-        //		tokensPerTopicArr,
-        //		testing.get(0).getDataAlphabet(),
-        //		0.01, 237.58, testing.get(0), params);
+        DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
+        		tokensPerTopicArr,
+        		testing.get(0).getDataAlphabet(),
+        		0.01, 237.58, testing.get(0), params, oldTypeTopicCounts);
         
-        //File outputFile = new File("output.txt");
+        File outputFile = new File("output.txt");
         
-        //dmrti.writeInferredDistributions(testing, outputFile, 100, 10, 10, 0.0, -1);
-        
-        //System.out.println(myMaxEnt.getParameters());
+        dmrti.writeInferredDistributions(testing, outputFile, 100, 10, 10, 0.0, -1);
 
 	}
 	

@@ -290,6 +290,11 @@ public class DMRTopicModel extends LDAHyper {
 		// New plan -- save state, load state into more modern version, then write inferencer.
 		lda.printState(new File("dmrState.state"));
 		
+		//But we also need the older style for the likelihood...
+		fout = new FileOutputStream("dmr.oldcounts");
+		oos = new ObjectOutputStream(fout);
+		oos.writeObject(lda.typeTopicCounts);
+		
 		System.out.println(lda.beta);
 		System.out.println(lda.betaSum);
     }
