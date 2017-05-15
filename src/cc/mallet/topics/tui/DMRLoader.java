@@ -40,7 +40,7 @@ public class DMRLoader implements Serializable {
 		return reader;
     }
 
-	public void load(File wordsFile, File featuresFile, File instancesFile) throws IOException, FileNotFoundException {
+	public InstanceList load(File wordsFile, File featuresFile, File instancesFile) throws IOException, FileNotFoundException {
 
 		Pipe instancePipe =
 			new SerialPipes (new Pipe[] {
@@ -81,23 +81,46 @@ public class DMRLoader implements Serializable {
 			new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(instancesFile)));
         oos.writeObject(instances);
         oos.close();
-
+        return instances;
 
     }
 
     public static void main (String[] args) throws FileNotFoundException, IOException {
 
-		if (args.length != 3) {
-			System.err.println("Usage: DMRLoader [words file] [features file] [instances file]");
+		if (args.length != 3 && args.length != 4) {
+			System.err.println("Usage: DMRLoader [words file] [features file] [instances file] [optionally -- how many of these instances are training?]");
 			System.exit(0);
 		}
 
 		File wordsFile = new File(args[0]);
 		File featuresFile = new File(args[1]);
 		File instancesFile = new File(args[2]);
+		int nTraining = -1;
+		if(args.length == 4) {
+			nTraining = Integer.parseInt(args[3]);
+		}
 
 		DMRLoader loader = new DMRLoader();
-		loader.load(wordsFile, featuresFile, instancesFile);
+		InstanceList allInstances = loader.load(wordsFile, featuresFile, instancesFile);
+		if(args.length == 4) {
+			InstanceList trainingInstances = new InstanceList();
+			InstanceList testingInstances = new InstanceList();
+			for(int i = 0; i < allInstances.size(); ++i) {
+				if(i <= nTraining) trainingInstances.add(allInstances.get(i));
+				else testingInstances.add(allInstances.get(i));
+			}
+			String trainOut = args[2] + "-training";
+			String testOut = args[2] + "-testing";
+			
+			ObjectOutputStream oos = 
+					new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(trainOut)));
+		    oos.writeObject(trainingInstances);
+		    oos.close();
+		        
+		    oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(testOut)));
+			        oos.writeObject(trainingInstances);
+			        oos.close();
+		}
 
 	}
 
