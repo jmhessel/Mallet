@@ -285,10 +285,15 @@ public class DMRTopicInferencer extends TopicInferencer {
 			e.printStackTrace();
 		}
         
+        
+        double beta = .01;
+        double betaSum = tokensPerTopicArr.length * beta;
+        System.out.println("Using beta = " + beta + " and beta sum = " + betaSum);
+        
         DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
         		tokensPerTopicArr,
         		testing.get(0).getDataAlphabet(),
-        		0.01, 237.58, testing.get(0), params, oldTypeTopicCounts);
+        		beta, betaSum, testing.get(0), params, oldTypeTopicCounts);
         
         File outputFile = new File("output.txt");
         File likelihoodFile = new File("likelihood.txt");
