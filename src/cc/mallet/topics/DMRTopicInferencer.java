@@ -181,7 +181,7 @@ public class DMRTopicInferencer extends TopicInferencer {
 			out.println(builder);
 			doc++;
 		}
-
+		logLikeOut.close();
 		out.close();
 	}
 	
