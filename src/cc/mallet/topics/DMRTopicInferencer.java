@@ -287,7 +287,7 @@ public class DMRTopicInferencer extends TopicInferencer {
         
         
         double beta = .01;
-        double betaSum = tokensPerTopicArr.length * beta;
+        double betaSum = oldTypeTopicCounts.length * beta;
         System.out.println("Using beta = " + beta + " and beta sum = " + betaSum);
         
         DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
