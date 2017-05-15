@@ -274,6 +274,8 @@ public class DMRTopicModel extends LDAHyper {
 	public static void main (String[] args) throws IOException {
 
         InstanceList training = InstanceList.load (new File(args[0]));
+        
+        System.out.println("There were " + training.size() + " training documents.");
 
         int numTopics = args.length > 1 ? Integer.parseInt(args[1]) : 200;
 
