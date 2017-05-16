@@ -17,17 +17,24 @@ public class Inference2Counts {
 	public static void main(String[] args) throws IOException {
 		TopicInferencer inferencer = null;
 		try {
-			inferencer = TopicInferencer.read(new File("myInferencer.mallet"));
+			inferencer = TopicInferencer.read(new File(args[0]));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		FileOutputStream fout = new FileOutputStream("typeTopicCounts.mallet");
+		//Yes, this is, like, THE case for using StringBuilder, but...
+      	String[] outToks = args[0].split("/");
+      	String outBase = "";
+      	for(int i = 0; i < outToks.length-1; ++i) {
+      		outBase += outToks[i] + "/";
+      	}
+		
+		FileOutputStream fout = new FileOutputStream(outBase + "typeTopicCounts.mallet");
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(inferencer.getTypeTopicCounts());
 		
-		fout = new FileOutputStream("tokensPerTopic.mallet");
+		fout = new FileOutputStream(outBase + "tokensPerTopic.mallet");
 		oos = new ObjectOutputStream(fout);
 		oos.writeObject(inferencer.getTokensPerTopic());
 	}
