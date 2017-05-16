@@ -106,9 +106,11 @@ public class DMRLoader implements Serializable {
 			InstanceList trainingInstances = new InstanceList();
 			InstanceList testingInstances = new InstanceList();
 			for(int i = 0; i < allInstances.size(); ++i) {
-				if(i <= nTraining) trainingInstances.add(allInstances.get(i));
+				if(i < nTraining) trainingInstances.add(allInstances.get(i));
 				else testingInstances.add(allInstances.get(i));
 			}
+			
+			System.out.println("Writing " + trainingInstances.size() + " training docs and " + testingInstances.size() + " testing docs.");
 			String trainOut = args[2] + "-training";
 			String testOut = args[2] + "-testing";
 			
