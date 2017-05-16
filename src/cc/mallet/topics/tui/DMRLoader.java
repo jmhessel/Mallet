@@ -120,7 +120,7 @@ public class DMRLoader implements Serializable {
 		    oos.close();
 		        
 		    oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(testOut)));
-			        oos.writeObject(trainingInstances);
+			        oos.writeObject(testingInstances);
 			        oos.close();
 		}
 
