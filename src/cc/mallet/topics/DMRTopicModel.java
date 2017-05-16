@@ -284,20 +284,26 @@ public class DMRTopicModel extends LDAHyper {
 		lda.setTopicDisplay(100, 10);
 		lda.addInstances(training);
 		lda.estimate();
-
-		FileOutputStream fout = new FileOutputStream("dmr.maxentmodel");
+		
+		//Yes, this is, like, THE case for using StringBuilder, but...
+		String[] outToks = args[0].split("/");
+		String outBase = "";
+		for(int i = 0; i < outToks.length-1; ++i) {
+			outBase += outToks[i] + "/";
+		}
+		
+		System.out.println("Using " + outBase + " as the base.");
+		
+		FileOutputStream fout = new FileOutputStream(outBase + "dmr.maxentmodel");
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(lda.dmrParameters);
 
 		// New plan -- save state, load state into more modern version, then write inferencer.
-		lda.printState(new File("dmrState.state"));
+		lda.printState(new File(outBase + "dmrState.state"));
 		
 		//But we also need the older style for the likelihood...
-		fout = new FileOutputStream("dmr.oldcounts");
+		fout = new FileOutputStream(outBase + "dmr.oldcounts");
 		oos = new ObjectOutputStream(fout);
 		oos.writeObject(lda.typeTopicCounts);
-		
-		System.out.println(lda.beta);
-		System.out.println(lda.betaSum);
     }
 }

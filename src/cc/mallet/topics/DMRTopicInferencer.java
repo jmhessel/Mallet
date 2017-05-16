@@ -291,13 +291,21 @@ public class DMRTopicInferencer extends TopicInferencer {
         System.out.println("Using beta = " + beta + " and beta sum = " + betaSum);
         System.out.println("There are " + testing.size() + " testing documents.");
         
+        
+        //Yes, this is, like, THE case for using StringBuilder, but...
+      	String[] outToks = args[0].split("/");
+      	String outBase = "";
+      	for(int i = 0; i < outToks.length-1; ++i) {
+      		outBase += outToks[i] + "/";
+      	}
+        
         DMRTopicInferencer dmrti = new DMRTopicInferencer(typeTopicArr,
         		tokensPerTopicArr,
         		testing.get(0).getDataAlphabet(),
         		beta, betaSum, testing.get(0), params, oldTypeTopicCounts);
         
-        File outputFile = new File("output.txt");
-        File likelihoodFile = new File("likelihood.txt");
+        File outputFile = new File(outBase + "output.txt");
+        File likelihoodFile = new File(outBase + "likelihood.txt");
         
         dmrti.writeInferredDistributionsAndLogLikelihoods(testing, outputFile, likelihoodFile, 100, 10, 10, 0.0, -1);
 
