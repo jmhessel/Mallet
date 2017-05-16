@@ -33,7 +33,7 @@ public class DMRTopicInferencer extends TopicInferencer {
 	public DMRTopicInferencer(int[][] typeTopicCounts,  int[] tokensPerTopic, Alphabet alphabet,
 			double beta, double betaSum, Instance oneInstance, MaxEnt classifier, gnu.trove.TIntIntHashMap[] oldTypeTopicCounts) {
 		
-		super(typeTopicCounts, tokensPerTopic, alphabet, new double[typeTopicCounts[0].length], beta, betaSum);
+		super(typeTopicCounts, tokensPerTopic, alphabet, new double[tokensPerTopic.length], beta, betaSum);
 		System.out.println("I think that there are " + this.numTopics + " topics.");
 		System.out.println("I am using a topic mask of " + this.topicMask + " " + this.topicBits);
 
@@ -45,7 +45,7 @@ public class DMRTopicInferencer extends TopicInferencer {
 		this.classifier = classifier;
 		this.parameters = classifier.getParameters();
 		System.out.println(parameters.length);
-		this.numTopics = typeTopicCounts[0].length;
+		this.numTopics = tokensPerTopic.length;
 		
 		System.out.println("There are " + this.numTopics + " topics.");
 		
