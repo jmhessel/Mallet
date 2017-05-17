@@ -91,8 +91,8 @@ public class MarginalProbEstimator implements Serializable {
 			cachedCoefficients[topic] =  alpha[topic] / (tokensPerTopic[topic] + betaSum);
 		}
 		
-		System.err.println("Topic Evaluator: " + numTopics + " topics, " + topicBits + " topic bits, " + 
-						   Integer.toBinaryString(topicMask) + " topic mask");
+		//System.err.println("Topic Evaluator: " + numTopics + " topics, " + topicBits + " topic bits, " + 
+		//				   Integer.toBinaryString(topicMask) + " topic mask");
 
 	}
 	
