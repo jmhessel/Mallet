@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.FileInputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -101,6 +102,63 @@ public class DMRTopicInferencer extends TopicInferencer {
         }
     }
 	
+    
+    /**
+	 *  Infer topics for the provided instances and
+	 *   write distributions to the provided file.
+	 *
+	 *  @param instances
+	 *  @param distributionsFile
+	 *  @param numIterations The total number of iterations of sampling per document
+	 *  @param thinning	  The number of iterations between saved samples
+	 *  @param burnIn		The number of iterations before the first saved sample
+	 *  @param threshold	 The minimum proportion of a given topic that will be written
+	 *  @param max		   The total number of topics to report per document]
+	 */
+	public void writeInferredDistributionsL2R(InstanceList instances, File distributionsFile, File logLikelihoodFile,
+			int numIterations, int thinning, int burnIn, double threshold, int max) throws IOException {
+
+		PrintWriter out = new PrintWriter(distributionsFile);
+		PrintWriter logLikeOut = new PrintWriter(logLikelihoodFile);
+		
+		out.print ("#doc name topic proportion ...\n");
+
+		IDSorter[] sortedTopics = new IDSorter[ numTopics ];
+		for (int topic = 0; topic < numTopics; topic++) {
+			// Initialize the sorters with dummy values
+			sortedTopics[topic] = new IDSorter(topic, topic);
+		}
+
+		if (max < 0 || max > numTopics) {
+			max = numTopics;
+		}
+		
+		MarginalProbEstimator mpe;
+		double alphaSum;
+		
+		PrintStream likelihoodPS = new PrintStream(logLikelihoodFile);
+
+		for (Instance instance: instances) {
+
+			//Modify this.alpha to be the correct alpha for this document.
+			setAlphas(instance);
+			
+			alphaSum = 0;
+			for(double a: this.alpha) alphaSum += a;
+			
+			mpe = new MarginalProbEstimator (this.numFeatures,
+					  this.alpha, alphaSum,
+					  this.beta,
+					  typeTopicCounts, 
+					  tokensPerTopic);
+			
+			
+			mpe.evaluateLeftToRightOneInstance(instance, 10, true, likelihoodPS);
+		}
+		logLikeOut.close();
+		out.close();
+	}
+    
 	
 	/**
 	 *  Infer topics for the provided instances and
@@ -307,7 +365,7 @@ public class DMRTopicInferencer extends TopicInferencer {
         File outputFile = new File(outBase + "output.txt");
         File likelihoodFile = new File(outBase + "likelihood.txt");
         
-        dmrti.writeInferredDistributionsAndLogLikelihoods(testing, outputFile, likelihoodFile, 100, 10, 10, 0.0, -1);
+        dmrti.writeInferredDistributionsL2R(testing, outputFile, likelihoodFile, 100, 10, 10, 0.0, -1);
 
 	}
 	

@@ -159,6 +159,45 @@ public class MarginalProbEstimator implements Serializable {
 		return totalLogLikelihood;
 	}
 	
+	public double evaluateLeftToRightOneInstance(Instance instance, int numParticles, boolean usingResampling,
+			   PrintStream docProbabilityStream) {
+
+		double logNumParticles = Math.log(numParticles);
+		
+		FeatureSequence tokenSequence = (FeatureSequence) instance.getData();
+
+		double docLogLikelihood = 0;
+
+		double[][] particleProbabilities = new double[ numParticles ][];
+		for (int particle = 0; particle < numParticles; particle++) {
+			particleProbabilities[particle] = leftToRight(tokenSequence, usingResampling);
+		}
+			
+		for (int position = 0; position < particleProbabilities[0].length; position++) {
+				double sum = 0;
+				for (int particle = 0; particle < numParticles; particle++) {
+					sum += particleProbabilities[particle][position];
+			}
+				
+			if (sum > 0.0) {
+					double logProb = Math.log(sum) - logNumParticles;
+					docLogLikelihood += logProb;
+				
+				if (printWordProbabilities) {
+					Object word = instance.getDataAlphabet().lookupObject(tokenSequence.getIndexAtPosition(position));
+					System.out.printf("%s\t%f\n", word, logProb);
+				}
+			}
+		}
+			
+		if (docProbabilityStream != null) {
+			docProbabilityStream.println(docLogLikelihood);
+		}
+		return docLogLikelihood;
+	}	
+	
+	
+	
 	protected double[] leftToRight (FeatureSequence tokenSequence, boolean usingResampling) {
 
 		int[] oneDocTopics = new int[tokenSequence.getLength()];
