@@ -146,7 +146,7 @@ public class DMRTopicInferencer extends TopicInferencer {
 			alphaSum = 0;
 			for(double a: this.alpha) alphaSum += a;
 			
-			mpe = new MarginalProbEstimator (this.numFeatures,
+			mpe = new MarginalProbEstimator (this.numTopics,
 					  this.alpha, alphaSum,
 					  this.beta,
 					  typeTopicCounts, 
