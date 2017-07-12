@@ -56,10 +56,10 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 {
 	private static Logger logger = MalletLogger.getLogger(FeatureVector.class.getName());
 
-	Alphabet dictionary;
-	
+	public Alphabet dictionary;
+
 	protected FeatureVector (Alphabet dict,
-													 int[] indices, double[] values, 
+													 int[] indices, double[] values,
 													 int capacity, int size,
 													 boolean copy,
 													 boolean checkIndicesSorted,
@@ -75,7 +75,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 		super (values);
 		this.dictionary = dict;
 	}
-	
+
 	/** Create non-binary vector, possibly dense if "featureIndices" or possibly sparse, if not */
 	public FeatureVector (Alphabet dict,
 												int[] featureIndices,
@@ -103,7 +103,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 		}
 		return feats;
 	}
-		
+
 	public FeatureVector (Alphabet dict, Object[] keys, double[] values)
 	{
 		this (dict, getObjectIndices(keys, dict, true), values);
@@ -126,7 +126,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 	{
 		this (fs, false);
 	}
-	
+
 	public FeatureVector (Alphabet dict, PropertyList pl, boolean binary,
 												boolean growAlphabet)
 	{
@@ -214,7 +214,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 				{
 					int index = newVocab.lookupIndex (FeatureConjunction.getName (v, fv.indices[i], fv.indices[j]));
 					if (index != -1) // this can be -1 if newVocab.growthStopped
-						newIndices[size++] = index; 
+						newIndices[size++] = index;
 				}
 			}
 		}
@@ -227,12 +227,12 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 					newIndices[j-1] = newIndices[j];
 				size--;
 			}
-		}		
+		}
 		int[] ret = new int[size];
 		System.arraycopy (newIndices, 0, ret, 0, size);
 		return ret;
 	}
-	
+
 	/** New feature vector containing all the features of "fv", plus new
 			features created by making conjunctions between the features in
 			"conjunctions" and all the other features. */
@@ -255,7 +255,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
     if (fv.indices == null) {
       throw new UnsupportedOperationException("Not yet implemented for dense feature vectors.");
     }
-    
+
     // this numLocations() method call ensures that AugmentableFeatureVectors have been compressed
     int fvNumLocations = fv.numLocations();
 
@@ -300,7 +300,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 																values.length, values.length, false, false, false);
 		}
 	}
-	
+
 	public String toString ()
 	{
 		return toString (false);
@@ -403,7 +403,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 			    sb.append (dictionary.lookupObject(idx).toString());
 			    sb.append ("(" + idx +")");
 			}
-			
+
 			sb.append ("=");
 			sb.append (values[i]);
 			if (!onOneLine)
@@ -419,12 +419,12 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 	{
 		return dictionary;
 	}
-	
+
 	public Alphabet[] getAlphabets()
 	{
 		return new Alphabet[] {dictionary};
 	}
-	
+
 	public boolean alphabetsMatch (AlphabetCarrying object)
 	{
 		return dictionary.equals (object.getAlphabet());
@@ -447,6 +447,18 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 		return (loc >= 0 && valueAtLocation(loc) != 0);
 	}
 
+	public double valueAtIndex(int loc) {
+		return valueAtLocation(loc);
+	}
+
+	public int[] getIndices() {
+		return indices;
+	}
+
+	public double[] getValues() {
+		return values;
+	}
+
 	public double value (Object o)
 	{
 		int loc = location (o);
@@ -455,7 +467,7 @@ public class FeatureVector extends SparseVector implements Serializable, Alphabe
 		else
 			throw new IllegalArgumentException ("Object "+o+" is not a key in the dictionary.");
 	}
-	
+
 	//Serialization
 
 	private static final long serialVersionUID = 1;
