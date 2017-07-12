@@ -59,6 +59,7 @@
       debug="true"
       deprecation="off"
       listfiles="no"
+      memorymaximumsize="12G"
       >
       <src path="${src}"/>
       <include name="cc/**/*.java"/>

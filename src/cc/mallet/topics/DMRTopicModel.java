@@ -10,6 +10,8 @@ import cc.mallet.pipe.Noop;
 
 import gnu.trove.TIntIntHashMap;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
@@ -24,7 +26,7 @@ public class DMRTopicModel extends LDAHyper {
     int defaultFeatureIndex;
 
     Pipe parameterPipe = null;
-	
+
 	double[][] alphaCache;
     double[] alphaSumCache;
 
@@ -112,7 +114,7 @@ public class DMRTopicModel extends LDAHyper {
 	public void setAlphas() {
 
         double[] parameters = dmrParameters.getParameters();
-        
+
         alphaSum = 0.0;
 		smoothingOnlyMass = 0.0;
 
@@ -120,26 +122,26 @@ public class DMRTopicModel extends LDAHyper {
         for (int topic=0; topic < numTopics; topic++) {
             alpha[topic] = Math.exp( parameters[ (topic * numFeatures) + defaultFeatureIndex ] );
             alphaSum += alpha[topic];
-			
+
 			smoothingOnlyMass += alpha[topic] * beta / (tokensPerTopic[topic] + betaSum);
 			cachedCoefficients[topic] =  alpha[topic] / (tokensPerTopic[topic] + betaSum);
         }
 
     }
 
-    /** This method sets the alphas for a hypothetical "document" that contains 
+    /** This method sets the alphas for a hypothetical "document" that contains
      *   a single non-default feature.
      */
     public void setAlphas(int featureIndex) {
 
         double[] parameters = dmrParameters.getParameters();
-        
+
         alphaSum = 0.0;
 		smoothingOnlyMass = 0.0;
 
         // Use only the default features to set the topic prior (use no document features)
         for (int topic=0; topic < numTopics; topic++) {
-            alpha[topic] = Math.exp(parameters[ (topic * numFeatures) + featureIndex ] +  
+            alpha[topic] = Math.exp(parameters[ (topic * numFeatures) + featureIndex ] +
                                     parameters[ (topic * numFeatures) + defaultFeatureIndex ] );
             alphaSum += alpha[topic];
 
@@ -153,17 +155,17 @@ public class DMRTopicModel extends LDAHyper {
 	 *  Set alpha based on features in an instance
 	 */
     public void setAlphas(Instance instance) {
-    
+
         // we can't use the standard score functions from MaxEnt,
         //  since our features are currently in the Target.
         FeatureVector features = (FeatureVector) instance.getTarget();
         if (features == null) { setAlphas(); return; }
-        
+
         double[] parameters = dmrParameters.getParameters();
-        
+
         alphaSum = 0.0;
 		smoothingOnlyMass = 0.0;
-        
+
         for (int topic = 0; topic < numTopics; topic++) {
             alpha[topic] = parameters[topic*numFeatures + defaultFeatureIndex]
                 + MatrixOps.rowDotProduct (parameters,
@@ -171,7 +173,7 @@ public class DMRTopicModel extends LDAHyper {
                                            topic, features,
                                            defaultFeatureIndex,
                                            null);
-            
+
             alpha[topic] = Math.exp(alpha[topic]);
             alphaSum += alpha[topic];
 
@@ -182,9 +184,9 @@ public class DMRTopicModel extends LDAHyper {
 
 	public void learnParameters() {
 
-        // Create a "fake" pipe with the features in the data and 
+        // Create a "fake" pipe with the features in the data and
         //  a trove int-int hashmap of topic counts in the target.
-        
+
         if (parameterPipe == null) {
             parameterPipe = new Noop();
 
@@ -197,9 +199,9 @@ public class DMRTopicModel extends LDAHyper {
         if (dmrParameters == null) {
             dmrParameters = new MaxEnt(parameterPipe, new double[numFeatures * numTopics]);
         }
-        
+
         for (int doc=0; doc < data.size(); doc++) {
-            
+
             if (data.get(doc).instance.getTarget() == null) {
                 continue;
             }
@@ -274,7 +276,7 @@ public class DMRTopicModel extends LDAHyper {
 	public static void main (String[] args) throws IOException {
 
         InstanceList training = InstanceList.load (new File(args[0]));
-        
+
         System.out.println("There were " + training.size() + " training documents.");
 
         int numTopics = args.length > 1 ? Integer.parseInt(args[1]) : 200;
@@ -284,26 +286,46 @@ public class DMRTopicModel extends LDAHyper {
 		lda.setTopicDisplay(100, 10);
 		lda.addInstances(training);
 		lda.estimate();
-		
+
 		//Yes, this is, like, THE case for using StringBuilder, but...
 		String[] outToks = args[0].split("/");
 		String outBase = "";
 		for(int i = 0; i < outToks.length-1; ++i) {
 			outBase += outToks[i] + "/";
 		}
-		
+
 		System.out.println("Using " + outBase + " as the base.");
-		
+
 		FileOutputStream fout = new FileOutputStream(outBase + "dmr.maxentmodel");
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(lda.dmrParameters);
 
 		// New plan -- save state, load state into more modern version, then write inferencer.
 		lda.printState(new File(outBase + "dmrState.state"));
-		
+
 		//But we also need the older style for the likelihood...
 		fout = new FileOutputStream(outBase + "dmr.oldcounts");
 		oos = new ObjectOutputStream(fout);
 		oos.writeObject(lda.typeTopicCounts);
+
+		// And we should also save the parameter features for each feature, i.e., the weight matrix for parameters.
+		Alphabet features = training.get(0).getTargetAlphabet();
+		double[] parameters = lda.dmrParameters.getParameters();
+
+		BufferedWriter writer = new BufferedWriter(new FileWriter(outBase + "featureParameters.txt"));
+
+		for (int featureIndex = 0; featureIndex < features.size() ; ++featureIndex) {
+			StringBuffer toWrite = new StringBuffer();
+			String curFeature = (String) features.lookupObject(featureIndex);
+			toWrite.append(curFeature + "\t");
+			for (int topic = 0; topic < numTopics; topic++) {
+				toWrite.append(parameters[ (topic * lda.numFeatures) + featureIndex ]);
+				if (topic != numTopics - 1)
+					toWrite.append("\t");
+			}
+			if (featureIndex != lda.numFeatures - 1)
+				toWrite.append("\n");
+			writer.write(toWrite.toString());
+		}
     }
 }
